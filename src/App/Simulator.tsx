@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default (props: SimulatorProps) => {
   const [started, setStarted] = useState(false);
-  const { vars, registers } = useMemo(() => ParseAsm(props.code), [props.code]);
+  const { vars, registers, codes } = useMemo(() => ParseAsm(props.code), [props.code]);
 
   const classes = useStyles();
 
@@ -83,6 +83,7 @@ export default (props: SimulatorProps) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <pre style={{overflow: 'scroll'}}>{JSON.stringify(codes, null, 4)}</pre>
       </div>
     );
   }
