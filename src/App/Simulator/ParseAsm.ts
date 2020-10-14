@@ -60,7 +60,7 @@ export default (text: string) => {
           line = removeWhiteSpace(line);
           // Let's get rid of comments => denoted by ';'
           let idx = line.indexOf(";");
-          found.cmds.push(idx === 0 ? line.substr(0, idx) : line);
+          found.cmds.push(idx >  0 ? line.substr(0, idx) : line);
         }
       }
     }
