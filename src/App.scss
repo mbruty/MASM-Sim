@@ -1,0 +1,19 @@
+.App {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-flow: row nowrap;
+  font-family: "Roboto";
+  background-color: #1c1c1c;
+  color: #eeeeee;
+
+  textarea {
+    width: 70%;
+    font-family: "Roboto";
+    font-size: 1em;
+    resize: none;
+    border: none;
+    color: #eeeeee;
+    background-color: #242424;
+  }
+}

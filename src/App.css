@@ -1,0 +1,25 @@
+.App {
+  width: 100vw;
+  height: 100vh;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row nowrap;
+          flex-flow: row nowrap;
+  font-family: "Roboto";
+  background-color: #1c1c1c;
+  color: #eeeeee;
+}
+
+.App textarea {
+  width: 70%;
+  font-family: "Roboto";
+  font-size: 1em;
+  resize: none;
+  border: none;
+  color: #eeeeee;
+  background-color: #242424;
+}
+/*# sourceMappingURL=App.css.map */
