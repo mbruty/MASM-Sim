@@ -17,6 +17,12 @@ export default (props: TextAreaProps) => {
   });
 
   return (
-    <textarea spellCheck="false" id="code" onChange={(e) => props.setText(e.target.value)} value={props.text}/>
+    <textarea spellCheck="false" id="code" onChange={(e) => props.setText(e.target.value)} value={props.text} onKeyDown={(e) => {
+      if(e.key === "Tab" && !e.shiftKey){
+        document.execCommand('insertText', false, "\t");
+        e.preventDefault();
+        return false;
+      }
+    }}/>
   );
 };
