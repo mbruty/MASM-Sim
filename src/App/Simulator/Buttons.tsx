@@ -8,8 +8,11 @@ import {
 import { ArrowRightAlt, PlayArrow, SkipNext, Stop } from "@material-ui/icons";
 import React from "react";
 
-interface ButtonsProps{
-  setStarted: (started: boolean) => void
+interface ButtonsProps {
+  setStarted: (started: boolean) => void;
+  started: boolean;
+  nextClick: (e: any) => void;
+  setLocked: (locked: boolean) => void;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
 
 const theme = createMuiTheme({
   palette: {
+    type: "dark",
     primary: {
       // light: will be calculated from palette.primary.main,
       main: "#cc2833",
@@ -49,7 +53,9 @@ const theme = createMuiTheme({
   },
 });
 
+
 export default (props: ButtonsProps) => {
+  const onClick = (e: any) => props.setStarted(!props.started);
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -58,11 +64,15 @@ export default (props: ButtonsProps) => {
         color="primary"
         aria-label="text primary button group"
       >
-        <Button color="secondary" onClick={(e) => props.setStarted(true)}>
+        <Button
+          color="secondary"
+          disabled={props.started}
+          onClick={onClick}
+        >
           <PlayArrow />
           Run
         </Button>
-        <Button>
+        <Button onClick={props.nextClick}>
           <ArrowRightAlt />
           Next
         </Button>
@@ -71,7 +81,7 @@ export default (props: ButtonsProps) => {
           Skip to end
         </Button>
         <ThemeProvider theme={theme}>
-          <Button color="primary">
+          <Button color="primary" onClick={onClick} disabled={!props.started}>
             <Stop />
             Stop
           </Button>

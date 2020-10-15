@@ -31,7 +31,8 @@ const theme = createMuiTheme({
 });
 
 function App() {
-  const [text, setText] = useState(`.MODEL FLAT, stdcall
+  const [locked, setLocked] = useState(false);
+  let [text, setText] = useState(`.MODEL FLAT, stdcall
 .STACK 4096
 .data
 	message DWORD "r", "a", "c", "e", "c", "a", "r"
@@ -63,11 +64,14 @@ False:
 
 main endp
 end main`);
+  if (locked) {
+    setText = () => null;
+  }
   return (
     <ThemeProvider theme={theme}>
       <div className="App">
         <TextEditor text={text} setText={setText} />
-        <Simulator code={text} />
+        <Simulator setLocked={setLocked} code={text} />
       </div>
     </ThemeProvider>
   );
