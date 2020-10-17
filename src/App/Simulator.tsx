@@ -42,11 +42,11 @@ export default (props: SimulatorProps) => {
     registers: [] as Array<IRegister>,
     currentLine: 0,
     nextCmd: { cmd: "", lineNo: 0 } as ICmd,
-    blockKey: 'main',
+    blockKey: "main",
     codes: {},
     error: false,
   });
-  console.log(programState)
+  console.log(programState);
   useMemo(() => {
     const { registers, codes } = ParseAsm(props.code);
     setProgramState({
@@ -54,10 +54,26 @@ export default (props: SimulatorProps) => {
       currentLine: codes[0].cmds[0].lineNo,
       nextCmd: codes[0].cmds[0],
       codes,
-      blockKey: 'main',
+      blockKey: "main",
       error: false,
     });
   }, [props.code]);
+
+  useMemo(() => {
+    const element = document.querySelector<HTMLElement>(`.tln-wrapper`)!;
+    if (element) {
+      Array.from(element.children as HTMLCollectionOf<HTMLElement>).forEach((node, idx) => {
+        if (idx + 1 === programState.currentLine) {
+          node.style.backgroundColor = "#74f24b";
+          node.style.color = "black";
+        }
+        else{
+          node.style.backgroundColor = "#1c1c1c";
+          node.style.color = "#eeeeee";
+        }
+      });
+    }
+  }, [programState.currentLine]);
 
   const classes = useStyles();
 
@@ -105,16 +121,18 @@ export default (props: SimulatorProps) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {programState.registers.filter(x => !x.register).map((v) => (
-                <TableRow>
-                  <TableCell>{v.name}</TableCell>
-                  <TableCell>
-                    {v.value.toString().includes(",")
-                      ? "[ " + v.value + " ]"
-                      : v.value}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {programState.registers
+                .filter((x) => !x.register)
+                .map((v) => (
+                  <TableRow>
+                    <TableCell>{v.name}</TableCell>
+                    <TableCell>
+                      {v.value.toString().includes(",")
+                        ? "[ " + v.value + " ]"
+                        : v.value}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -127,18 +145,28 @@ export default (props: SimulatorProps) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {programState.registers.filter(x => x.register).map((register: IRegister) => (
-                <TableRow>
-                  <TableCell>{register.name}</TableCell>
-                  <TableCell>{register.value}</TableCell>
-                </TableRow>
-              ))}
+              {programState.registers
+                .filter((x) => x.register)
+                .map((register: IRegister) => (
+                  <TableRow>
+                    <TableCell>{register.name}</TableCell>
+                    <TableCell>{register.value}</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <pre style={{ overflowY: "scroll" }}>
-          {JSON.stringify(programState.codes, null, 4)}
-        </pre>
+        <Paper
+          style={{
+            padding: "5px",
+            paddingLeft: "15px",
+            paddingRight: "15px",
+          }}
+        >
+          <h4>Comparison:</h4>
+          <p>"r" === "r"</p>
+          <p>Result: true</p>
+        </Paper>
       </div>
     );
   }
