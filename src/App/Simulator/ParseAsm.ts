@@ -33,7 +33,7 @@ export default (text: string) => {
   let data = false;
   let code = false;
   let currentBlock: string;
-  const codes: Array<ICommand> = [];
+  let codes: Array<ICommand> = [];
   lines.forEach((line, lineIdx) => {
     // Parsing data
     if (data) {
@@ -80,6 +80,10 @@ export default (text: string) => {
     }
   });
 
+  // Remove any empty commands
+  codes = codes.map((c: ICommand) => {
+    return { ...c, cmds: c.cmds.filter((cmd: ICmd) => cmd.cmd !== "") };
+  });
   registers.pop();
   console.log(codes);
   return { registers, codes };

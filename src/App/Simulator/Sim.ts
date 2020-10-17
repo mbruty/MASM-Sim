@@ -5,11 +5,10 @@ const StringMath = require("string-math");
 export default (programState: any, setProgramState: (state: any) => void) => {
   const [instruction, ...params] = programState.nextCmd.cmd.split(" ");
 
-  // Remove the trailing ,
-  params[0] = params[0].substr(0, params[0].length - 1);
-
-  switch (instruction) {
+  switch (instruction.toLowerCase()) {
     case "mov":
+      // Remove the trailing ,
+      params[0] = params[0].substr(0, params[0].length - 1);
       // Get the second variable to move in to the first variable
       let toMove = programState.registers.filter(
         (x: IRegister) => x.name === params[1]
@@ -17,14 +16,20 @@ export default (programState: any, setProgramState: (state: any) => void) => {
       if (toMove.length === 0) {
         // Array access - not finished
         if (params[1].charAt(0) === "[") {
+          let register: string = params[1].substr(1, params[1].length - 1);
+          let index = programState.registers.filter(
+            (x: IRegister) => x.name === params[3].toUpperCase()
+          )[0].value;
           toMove = programState.registers.filter(
-            (x: IRegister) => x.name === params[2]
-          )[0][parseInt(params[3])];
+            (x: IRegister) => x.name === register
+          )[0].value[index];
+          console.log(toMove);
         } else if (params[1].toUpperCase() === "LENGTHOF") {
           let value = programState.registers.filter(
             (x: IRegister) => x.name === params[2]
           )[0];
-          let equation: string = value.value.length + " " + params.slice(3, params.length).join(' ');
+          let equation: string =
+            value.value.length + " " + params.slice(3, params.length).join(" ");
           toMove = StringMath(equation);
         } else {
           toMove = params[1];
@@ -41,6 +46,23 @@ export default (programState: any, setProgramState: (state: any) => void) => {
         .cmds.filter((x: ICmd) => x.lineNo === stateCopy.currentLine + 1)[0];
       stateCopy.currentLine = stateCopy.currentLine + 1;
       setProgramState(stateCopy);
+      break;
+    case "jmp":
+      // Find next clode block
+      const nextBlock = programState.codes.filter(
+        (x: ICommand) => x.key === params[0]
+      )[0];
+
+      // Set
+
+      console.log(params[0]);
+
+      setProgramState({
+        ...programState,
+        blockKey: nextBlock.key,
+        currentLine: nextBlock.cmds[0].lineNo,
+        nextCmd: nextBlock.cmds[0],
+      });
       break;
     default:
       setProgramState({ ...programState, error: true });
