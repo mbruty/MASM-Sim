@@ -71,7 +71,7 @@ end main`);
     <ThemeProvider theme={theme}>
       <div className="App">
         <TextEditor text={text} setText={setText} />
-        <Simulator setLocked={setLocked} code={text} />
+        <Simulator locked={locked} setLocked={setLocked} code={text} />
       </div>
     </ThemeProvider>
   );

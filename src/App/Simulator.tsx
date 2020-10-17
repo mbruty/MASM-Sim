@@ -20,6 +20,7 @@ import { ICmd } from "./Simulator/ICommand";
 interface SimulatorProps {
   code: string;
   setLocked: (newState: any) => void;
+  locked: boolean;
 }
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,6 +46,7 @@ export default (props: SimulatorProps) => {
     blockKey: "main",
     codes: {},
     error: false,
+    reset: false,
   });
   console.log(programState);
   useMemo(() => {
@@ -56,22 +58,24 @@ export default (props: SimulatorProps) => {
       codes,
       blockKey: "main",
       error: false,
+      reset: false,
     });
-  }, [props.code]);
+  }, [props.code, programState.reset]);
 
   useMemo(() => {
     const element = document.querySelector<HTMLElement>(`.tln-wrapper`)!;
     if (element) {
-      Array.from(element.children as HTMLCollectionOf<HTMLElement>).forEach((node, idx) => {
-        if (idx + 1 === programState.currentLine) {
-          node.style.backgroundColor = "#74f24b";
-          node.style.color = "black";
+      Array.from(element.children as HTMLCollectionOf<HTMLElement>).forEach(
+        (node, idx) => {
+          if (idx + 1 === programState.currentLine) {
+            node.style.backgroundColor = "#74f24b";
+            node.style.color = "black";
+          } else {
+            node.style.backgroundColor = "#1c1c1c";
+            node.style.color = "#eeeeee";
+          }
         }
-        else{
-          node.style.backgroundColor = "#1c1c1c";
-          node.style.color = "#eeeeee";
-        }
-      });
+      );
     }
   }, [programState.currentLine]);
 
@@ -88,6 +92,8 @@ export default (props: SimulatorProps) => {
           <Alert severity="error">I fucked up</Alert>
         ) : null}
         <Buttons
+          setProgramState={setProgramState}
+          programState={programState}
           setLocked={props.setLocked}
           nextClick={nextClick}
           setStarted={setStarted}
@@ -173,6 +179,8 @@ export default (props: SimulatorProps) => {
 
   return (
     <Buttons
+      setProgramState={setProgramState}
+      programState={programState}
       setLocked={props.setLocked}
       nextClick={nextClick}
       started={started}

@@ -5,7 +5,7 @@ import {
   makeStyles,
   ThemeProvider,
 } from "@material-ui/core";
-import { ArrowRightAlt, PlayArrow, SkipNext, Stop } from "@material-ui/icons";
+import { ArrowRightAlt, PlayArrow, Stop } from "@material-ui/icons";
 import React from "react";
 
 interface ButtonsProps {
@@ -13,6 +13,8 @@ interface ButtonsProps {
   started: boolean;
   nextClick: (e: any) => void;
   setLocked: (locked: boolean) => void;
+  programState: any;
+  setProgramState: (state: any) => void;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -53,7 +55,6 @@ const theme = createMuiTheme({
   },
 });
 
-
 export default (props: ButtonsProps) => {
   const onClick = (e: any) => props.setStarted(!props.started);
   const classes = useStyles();
@@ -64,11 +65,7 @@ export default (props: ButtonsProps) => {
         color="primary"
         aria-label="text primary button group"
       >
-        <Button
-          color="secondary"
-          disabled={props.started}
-          onClick={onClick}
-        >
+        <Button color="secondary" disabled={props.started} onClick={onClick}>
           <PlayArrow />
           Run
         </Button>
@@ -76,12 +73,16 @@ export default (props: ButtonsProps) => {
           <ArrowRightAlt />
           Next
         </Button>
-        <Button>
-          <SkipNext />
-          Skip to end
-        </Button>
         <ThemeProvider theme={theme}>
-          <Button color="primary" onClick={onClick} disabled={!props.started}>
+          <Button
+            color="primary"
+            onClick={(e: any) => {
+              onClick(e);
+              // Setting this to trigger the memoised state in Simulator
+              props.setProgramState({ ...props.programState,  reset: true});
+            }}
+            disabled={!props.started}
+          >
             <Stop />
             Stop
           </Button>
