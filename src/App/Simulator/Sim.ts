@@ -10,24 +10,18 @@ export default (programState: any, setProgramState: (state: any) => void) => {
       // Remove the trailing ,
       params[0] = params[0].substr(0, params[0].length - 1);
       // Get the second variable to move in to the first variable
-      let toMove = programState.registers.filter(
-        (x: IRegister) => x.name === params[1]
-      );
+      let toMove = findAndGet(programState.registers, params[1]);
       if (toMove.length === 0) {
         // Array access - not finished
         if (params[1].charAt(0) === "[") {
           let register: string = params[1].substr(1, params[1].length - 1);
-          let index = programState.registers.filter(
-            (x: IRegister) => x.name === params[3].toUpperCase()
+          let index = findAndGet(
+            programState.registers,
+            params[3].toUpperCase()
           )[0].value;
-          toMove = programState.registers.filter(
-            (x: IRegister) => x.name === register
-          )[0].value[index];
-          console.log(toMove);
+          toMove = findAndGet(programState.registers, register)[0].value[index];
         } else if (params[1].toUpperCase() === "LENGTHOF") {
-          let value = programState.registers.filter(
-            (x: IRegister) => x.name === params[2]
-          )[0];
+          let value = findAndGet(programState.registers, params[2])[0];
           let equation: string =
             value.value.length + " " + params.slice(3, params.length).join(" ");
           toMove = StringMath(equation);
@@ -36,11 +30,7 @@ export default (programState: any, setProgramState: (state: any) => void) => {
         }
       }
       let stateCopy = { ...programState };
-      stateCopy.registers.forEach((register: IRegister) => {
-        if (register.name === params[0].toUpperCase()) {
-          register.value = toMove;
-        }
-      });
+      stateCopy.registers = findAndSet(programState.registers, params[0].toUpperCase(), toMove);
       stateCopy.nextCmd = stateCopy.codes
         .filter((x: ICommand) => x.key === stateCopy.blockKey)[0]
         .cmds.filter((x: ICmd) => x.lineNo === stateCopy.currentLine + 1)[0];
@@ -55,8 +45,6 @@ export default (programState: any, setProgramState: (state: any) => void) => {
 
       // Set
 
-      console.log(params[0]);
-
       setProgramState({
         ...programState,
         blockKey: nextBlock.key,
@@ -64,7 +52,23 @@ export default (programState: any, setProgramState: (state: any) => void) => {
         nextCmd: nextBlock.cmds[0],
       });
       break;
+    case "cmp":
+      break;
     default:
       setProgramState({ ...programState, error: true });
   }
+};
+
+const findAndSet = (registers: Array<IRegister>, toFind: string, val: any) => {
+  // Find and set the value
+  return registers.map((reg) => {
+    if (reg.name === toFind) {
+      return { ...reg, value: val };
+    }
+    return reg;
+  });
+};
+
+const findAndGet = (registers: Array<IRegister>, toFind: string) => {
+  return registers.filter((reg) => reg.name === toFind);
 };
