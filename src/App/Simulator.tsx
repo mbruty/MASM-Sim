@@ -29,7 +29,8 @@ const useStyles = makeStyles((theme) => ({
     marginRight: "auto",
     flexDirection: "column",
     alignItems: "center",
-    position: "relative",
+    overflow: "auto",
+    width: "40%",
 
     "& > *": {
       marginBottom: "25px",
@@ -37,9 +38,25 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const toHex = (val: string | number): string => {
+  if (typeof val === "number" || !isNaN(parseInt(val))) {
+    return Number(val).toString(16);
+  } else {
+    if (val.toString().length === 3) {
+      return Number(val.toString().charCodeAt(0)).toString(16);
+    }
+    let chars = [];
+    for (let i = 0; i < val.length; i++) {
+      chars.push(Number(val[i].toString().charCodeAt(1)).toString(16));
+    }
+    return "[ " + chars.join(", ") + " ]";
+  }
+};
 export default (props: SimulatorProps) => {
   const [started, setStarted] = useState(false);
   const [useHex, setUseHex] = useState(false);
+  console.log(useHex);
+
   const [programState, setProgramState] = useState({
     registers: [] as Array<IRegister>,
     currentLine: 0,
@@ -52,25 +69,28 @@ export default (props: SimulatorProps) => {
       valOne: "",
       valTwo: "",
       result: "",
-    }
+    },
   });
-  console.log(programState);
   useMemo(() => {
     const { registers, codes } = ParseAsm(props.code);
-    setProgramState({
-      registers,
-      currentLine: codes[0].cmds[0].lineNo,
-      nextCmd: codes[0].cmds[0],
-      codes,
-      blockKey: "main",
-      error: false,
-      reset: false,
-      comparrison: {
-        valOne: "null",
-        valTwo: "null",
-        result: "null",
-      },
-    });
+    try {
+      setProgramState({
+        registers,
+        currentLine: codes[0].cmds[0].lineNo,
+        nextCmd: codes[0].cmds[0],
+        codes,
+        blockKey: "main",
+        error: false,
+        reset: false,
+        comparrison: {
+          valOne: "null",
+          valTwo: "null",
+          result: "null",
+        },
+      });
+    } catch (e) {
+      setProgramState({ ...programState, error: true });
+    }
   }, [props.code, programState.reset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useMemo(() => {
@@ -93,7 +113,7 @@ export default (props: SimulatorProps) => {
   const classes = useStyles();
 
   const nextClick = (e: any) => {
-    Sim(programState, setProgramState);
+    Sim(programState, setProgramState, props.setLocked, setStarted);
   };
 
   if (started) {
@@ -101,11 +121,23 @@ export default (props: SimulatorProps) => {
       <div className={classes.root}>
         {programState.error ? (
           <Alert severity="error">
-            The current operation has not been implemented yet, please raise an
-            issue on GitHub or email me at mike@bruty.net and I'll get on it
-            asap
+            UhOh! Either your code isn't working or the current operation has
+            not been implemented yet. Please raise an issue on GitHub or email
+            me at mike@bruty.net and I'll get on it asap
           </Alert>
         ) : null}
+        <img
+          src="https://img.icons8.com/fluent/48/000000/github.png"
+          style={{
+            position: "absolute",
+            top: "100px",
+            right: "25px",
+            cursor: "pointer",
+          }}
+          onClick={(e) =>
+            window.open("https://github.com/mbruty/MASM-Sim", "_blank")
+          }
+        />
         <Buttons
           setProgramState={setProgramState}
           programState={programState}
@@ -119,12 +151,11 @@ export default (props: SimulatorProps) => {
             padding: "5px",
             paddingLeft: "15px",
             paddingRight: "15px",
-            width: "150%",
           }}
         >
           <p>EIP pointing to line: {programState.currentLine}</p>
         </Paper>
-        <Paper style={{ width: "200%" }}>
+        <Paper>
           <TableContainer>
             <Table>
               <TableHead>
@@ -141,7 +172,11 @@ export default (props: SimulatorProps) => {
                       <TableCell>{v.name}</TableCell>
                       <TableCell>
                         {v.value.toString().includes(",")
-                          ? "[ " + v.value + " ]"
+                          ? useHex
+                            ? toHex(v.value)
+                            : "[ " + v.value.join(", ") + " ]"
+                          : useHex
+                          ? toHex(v.value)
                           : v.value}
                       </TableCell>
                     </TableRow>
@@ -150,7 +185,7 @@ export default (props: SimulatorProps) => {
             </Table>
           </TableContainer>
         </Paper>
-        <Paper style={{ width: "200%" }}>
+        <Paper>
           <TableContainer>
             <Table>
               <TableHead>
@@ -177,7 +212,6 @@ export default (props: SimulatorProps) => {
             padding: "5px",
             paddingLeft: "15px",
             paddingRight: "15px",
-            width: "150%",
           }}
         >
           <h4>Comparison:</h4>
@@ -200,7 +234,7 @@ export default (props: SimulatorProps) => {
             <Grid item>Yes</Grid>
           </Grid>
         </div>
-        <p style={{ position: "absolute", bottom: 0, width: "200%" }}>
+        <p style={{ width: "50ch" }}>
           Note: This doesn't have any error checking built in, so please run it
           through an actual compiler and make sure it runs to the end before
           using this app or else it might break if you code doesn't work
@@ -212,6 +246,18 @@ export default (props: SimulatorProps) => {
 
   return (
     <div className={classes.root}>
+      <img
+        src="https://img.icons8.com/fluent/48/000000/github.png"
+        style={{
+          position: "absolute",
+          top: "100px",
+          right: "25px",
+          cursor: "pointer",
+        }}
+        onClick={(e) =>
+          window.open("https://github.com/mbruty/MASM-Sim", "_blank")
+        }
+      />
       <Buttons
         setProgramState={setProgramState}
         programState={programState}
@@ -220,7 +266,7 @@ export default (props: SimulatorProps) => {
         started={started}
         setStarted={setStarted}
       />
-      <p style={{ position: "absolute", bottom: 0, width: "200%" }}>
+      <p style={{ width: "50ch" }}>
         Note: This doesn't have any error checking built in, so please run it
         through an actual compiler and make sure it runs to the end before using
         this app or else it might break if you code doesn't work properly
