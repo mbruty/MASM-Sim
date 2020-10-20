@@ -56,7 +56,10 @@ const theme = createMuiTheme({
 });
 
 export default (props: ButtonsProps) => {
-  const onClick = (e: any) => props.setStarted(!props.started);
+  const onClick = (e: any) => {
+    props.setStarted(!props.started);
+    props.setLocked(true);
+  };
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -69,7 +72,7 @@ export default (props: ButtonsProps) => {
           <PlayArrow />
           Run
         </Button>
-        <Button onClick={props.nextClick}>
+        <Button onClick={props.nextClick} disabled={!props.started}>
           <ArrowRightAlt />
           Next
         </Button>
@@ -79,7 +82,8 @@ export default (props: ButtonsProps) => {
             onClick={(e: any) => {
               onClick(e);
               // Setting this to trigger the memoised state in Simulator
-              props.setProgramState({ ...props.programState,  reset: true});
+              props.setProgramState({ ...props.programState, reset: true });
+              props.setLocked(false);
             }}
             disabled={!props.started}
           >
