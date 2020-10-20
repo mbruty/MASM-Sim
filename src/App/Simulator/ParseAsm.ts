@@ -85,7 +85,6 @@ export default (text: string) => {
     return { ...c, cmds: c.cmds.filter((cmd: ICmd) => cmd.cmd !== "") };
   });
   registers.pop();
-  console.log(codes);
   return { registers, codes };
 };
 
