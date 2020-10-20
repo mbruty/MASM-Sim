@@ -2,27 +2,41 @@ import { ICmd, ICommand } from "./ICommand";
 import IRegister from "./IRegister";
 const StringMath = require("string-math");
 
-export default (programState: any, setProgramState: (state: any) => void) => {
+export default (
+  programState: any,
+  setProgramState: (state: any) => void,
+  setLocked: (state: boolean) => void,
+  setStarted: (state: boolean) => void
+) => {
   const [instruction, ...params] = programState.nextCmd.cmd.split(" ");
   let stateCopy = { ...programState };
+
+  const end = () => {
+    setLocked(false);
+    setStarted(false);
+    setProgramState({ ...programState, reset: true });
+  };
 
   const goToNextLine = () => {
     stateCopy.nextCmd = findNextCode(
       programState.codes,
       programState.blockKey,
-      programState.currentLine
+      programState.currentLine,
+      end
     );
-    stateCopy.currentLine = stateCopy.nextCmd.lineNo;
-    setProgramState(stateCopy);
+    if(stateCopy.nextCmd){
+      stateCopy.currentLine = stateCopy.nextCmd.lineNo;
+      setProgramState(stateCopy);
+    }
   };
   switch (instruction.toLowerCase()) {
     case "mov":
       // Remove the trailing ,
       params[0] = params[0].substr(0, params[0].length - 1);
       // Get the second variable to move in to the first variable
-      let toMove = findAndGet(programState.registers, params[1]);
+      let toMove: any = findAndGet(programState.registers, params[1]);
       if (toMove.length === 0) {
-        // Array access - not finished
+        // Array access
         if (params[1].charAt(0) === "[") {
           let register: string = params[1].substr(1, params[1].length - 1);
           let index = findAndGet(
@@ -31,7 +45,7 @@ export default (programState: any, setProgramState: (state: any) => void) => {
           )[0].value;
           toMove = findAndGet(programState.registers, register)[0].value[index];
         } else if (params.includes("LENGTHOF") || params.includes("lengthof")) {
-          toMove = getLengthOf(programState.registers, params);
+          toMove = getLengthOf(programState.registers, params, false);
         } else {
           toMove = params[1];
         }
@@ -49,18 +63,33 @@ export default (programState: any, setProgramState: (state: any) => void) => {
       break;
     case "cmp":
       let first;
-      if (params.includes("lengthof") || params.includes("LENGTHOF")) {
-        getLengthOf(programState.registers, params);
+      let second;
+      if (params[0].includes("lengthof") || params[0].includes("LENGTHOF")) {
+        first = getLengthOf(programState.registers, params, false);
       } else {
         first = findAndGet(
           programState.registers,
           params[0].substr(0, params[0].length - 1).toUpperCase()
         )[0].value;
       }
-      let second = findAndGet(
-        programState.registers,
-        params[1].toUpperCase()
-      )[0].value;
+      // Find the index of the second parameter
+      let secondIdx = 0;
+      params.forEach((param: any, index: any) => {
+        if (param.endsWith(",")) {
+          secondIdx = index + 1;
+        }
+      });
+      if (
+        params[secondIdx].includes("lengthof") ||
+        params[secondIdx].includes("LENGTHOF")
+      ) {
+        second = getLengthOf(programState.registers, params, false);
+      } else {
+        second = findAndGet(
+          programState.registers,
+          params[secondIdx].toUpperCase()
+        )[0].value;
+      }
       stateCopy.comparrison.valOne = first;
       stateCopy.comparrison.valTwo = second;
       if (first === second) {
@@ -139,7 +168,7 @@ export default (programState: any, setProgramState: (state: any) => void) => {
     case "inc":
       stateCopy.registers = findAndSet(
         programState.registers,
-        params[0],
+        params[0].toUpperCase(),
         null,
         "inc"
       );
@@ -148,7 +177,7 @@ export default (programState: any, setProgramState: (state: any) => void) => {
     case "dec":
       stateCopy.registers = findAndSet(
         programState.registers,
-        params[0],
+        params[0].toUpperCase(),
         null,
         "dec"
       );
@@ -156,7 +185,10 @@ export default (programState: any, setProgramState: (state: any) => void) => {
       break;
     case "ret":
       // End the program
-      setProgramState({...programState, reset: true});
+      end();
+      break;
+    case "main":
+      end();
       break;
     default:
       setProgramState({ ...programState, error: true });
@@ -172,8 +204,10 @@ const findAndSet = (
   // Find and set the value
   return registers.map((reg) => {
     if (reg.name === toFind) {
-      if (operation === "inc") return { ...reg, value: reg.value + 1 };
-      else if (operation === "dec") return { ...reg, value: reg.value - 1 };
+      if (operation === "inc")
+        return { ...reg, value: parseInt(reg.value) + 1 };
+      else if (operation === "dec")
+        return { ...reg, value: parseInt(reg.value) - 1 };
       return { ...reg, value: val };
     }
     return reg;
@@ -187,11 +221,14 @@ const findAndGet = (registers: Array<IRegister>, toFind: string) => {
 const findNextCode = (
   code: Array<ICommand>,
   blockKey: string,
-  currentLine: any
+  currentLine: any,
+  end: () => void
 ) => {
-  return code
+  let next = code
     .filter((x: ICommand) => x.key === blockKey)[0]
-    .cmds.filter((x: ICmd) => x.lineNo === currentLine + 1)[0];
+    .cmds.filter((x: ICmd) => x?.lineNo === currentLine + 1)[0];
+  if(next) return next;
+  else end();
 };
 
 const jumpToBlock = (
@@ -214,13 +251,20 @@ const jumpToBlock = (
 
 const getLengthOf = (
   registers: Array<IRegister>,
-  params: Array<any>
-) => {
-  let results = [] as Array<any>;
-  for(let i = 0; i < params.length; i++) {
-    if(params[i].toUpperCase().startsWith('LENGTHOF')){
+  params: Array<any>,
+  isFirstArg: boolean
+): number | undefined => {
+  for (let i = 0; i < params.length; i++) {
+    if (params[i].toUpperCase().startsWith("LENGTHOF")) {
+      let register = findAndGet(registers, params[i + 1])[0];
+      if (!isFirstArg) {
+        return StringMath(
+          register.value.length.toString() + params.slice(i + 2).join("")
+        );
+      }
     }
   }
+  return undefined;
   // let value = findAndGet(registers, params[2])[0];
   // if (params.length > 1) {
   //   let equation: string =
