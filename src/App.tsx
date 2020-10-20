@@ -32,40 +32,9 @@ const theme = createMuiTheme({
 
 function App() {
   const [locked, setLocked] = useState(false);
-  let [text, setText] = useState(`.MODEL FLAT, stdcall
-.STACK 4096
-.data
-	message DWORD "r", "a", "c", "e", "c", "a", "r"
-	answer DWORD 0
-.code
-main PROC
-	mov ebx, 0
-	mov ecx, LENGTHOF message - 1
-	JMP L1
-
-L1:
-	; get the value at the left and right pointer
-	mov eax, [message + ebx * 4] ; get the value at the left pointer
-	mov edx, [message + ecx * 4] ; get the value at the right pointer
-	cmp eax, edx ; if value at the left pointer and the right pointer are the same
-	jne False ; if they aren't equal go to false
-	inc ebx ; left ptr ++
-	dec ecx; right pointer --
-	cmp ebx, LENGTHOF message; if we're at the end of the array it's a palindrome!
-	je True
-	jmp L1
-
-
-True:
-	ret 1
-
-False:
-	ret 0
-
-main endp
-end main`);
+  let [text, setText] = useState("");
   if (locked) {
-    setText = () => null;
+    setText = (e) => null;
   }
   return (
     <ThemeProvider theme={theme}>
