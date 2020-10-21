@@ -7,26 +7,31 @@ export default (text: string) => {
       name: "EAX",
       value: 0,
       register: true,
+      pointingTo: undefined
     },
     {
       name: "EBX",
       value: 0,
       register: true,
+      pointingTo: undefined
     },
     {
       name: "ECX",
       value: 0,
       register: true,
+      pointingTo: undefined
     },
     {
       name: "EDX",
       value: 0,
       register: true,
+      pointingTo: undefined
     },
     {
       name: "EDI",
       value: 0,
       register: true,
+      pointingTo: undefined
     },
   ];
   const lines: Array<string> = text.split("\n");
@@ -41,7 +46,7 @@ export default (text: string) => {
       let args: Array<string> = line.replace(/,/g, "").split(" ");
       let name: string = args.shift()!;
       args.shift();
-      registers.push({ name, value: args, register: false });
+      registers.push({ name, value: args, register: false, pointingTo: undefined });
     }
 
     // Parsing the code
