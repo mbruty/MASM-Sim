@@ -55,7 +55,6 @@ const toHex = (val: string | number): string => {
 export default (props: SimulatorProps) => {
   const [started, setStarted] = useState(false);
   const [useHex, setUseHex] = useState(false);
-  console.log(useHex);
 
   const [programState, setProgramState] = useState({
     registers: [] as Array<IRegister>,
